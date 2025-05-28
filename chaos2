@@ -1,0 +1,2047 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPACE CHAOS: Neon Edition 🚀💀</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(45deg, #1a0033, #330066, #0066cc, #00cc99);
+            background-size: 400% 400%;
+            animation: gradientShift 3s ease infinite;
+            font-family: 'Orbitron', monospace;
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; overflow: hidden;
+        }
+        @keyframes gradientShift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+        .game-container {
+            position: relative; border: 4px solid #00ffcc; border-radius: 20px;
+            box-shadow: 0 0 50px rgba(0, 255, 204, 0.6), inset 0 0 50px rgba(0, 255, 204, 0.1);
+            background: rgba(0, 0, 0, 0.9); backdrop-filter: blur(10px);
+        }
+        canvas { display: block; background: transparent; border-radius: 16px; }
+        .ui {
+            position: absolute; top: 15px; left: 20px; color: #00ffcc; font-size: 16px; font-weight: 700;
+            text-shadow: 0 0 15px rgba(0, 255, 204, 0.8);
+        }
+        .combo-display {
+            position: absolute; top: 15px; right: 20px; color: #ff00ff; font-size: 24px; font-weight: 900;
+            text-shadow: 0 0 20px rgba(255, 0, 255, 1); transform: scale(1); transition: transform 0.2s ease;
+        }
+        .combo-display.mega { transform: scale(1.3); animation: pulse 0.5s ease infinite; }
+        .achievement-popup {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0);
+            background: linear-gradient(45deg, #ff00ff, #00ccff); color: white; padding: 20px; border-radius: 15px;
+            font-size: 18px; font-weight: 700; text-align: center; box-shadow: 0 0 30px rgba(255, 0, 255, 0.8);
+            z-index: 1000; transition: transform 0.3s ease;
+        }
+        .achievement-popup.show { transform: translate(-50%, -50%) scale(1); }
+        .meme-text {
+            position: absolute; font-size: 20px; font-weight: 900; color: #ffff00;
+            text-shadow: 2px 2px 0px #000, -2px -2px 0px #000, 2px -2px 0px #000, -2px 2px 0px #000;
+            pointer-events: none; z-index: 100; animation: memeFloat 2s ease-out forwards;
+        }
+        @keyframes memeFloat { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-100px) scale(1.5); opacity: 0; } }
+        .power-display {
+            position: absolute; bottom: 80px; left: 20px; color: #00ffcc; font-size: 14px; font-weight: 700;
+            text-shadow: 0 0 10px rgba(0, 255, 204, 0.8);
+        }
+        .controls {
+            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); color: #ffffff;
+            font-size: 12px; opacity: 0.8; text-align: center;
+        }
+        .game-over, .start-screen {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-weight: 900; text-align: center;
+        }
+        .game-over {
+            color: #ff00ff; font-size: 36px; text-shadow: 0 0 30px rgba(255, 0, 255, 1); display: none;
+        }
+        .start-screen {
+            color: #00ffcc; font-size: 28px; text-shadow: 0 0 25px rgba(0, 255, 204, 1);
+        }
+        .level-up {
+            position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%);
+            color: #ffff00; font-size: 48px; font-weight: 900; text-shadow: 0 0 30px rgba(255, 255, 0, 1);
+            display: none; z-index: 1000;
+        }
+        .boss-warning {
+            position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
+            color: #ff0000; font-size: 40px; font-weight: 900; text-shadow: 0 0 40px rgba(255, 0, 0, 1);
+            display: none; z-index: 1000; animation: pulse 0.3s infinite;
+        }
+        .tutorial-overlay, .settings-overlay, .shop-overlay {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9); border: 2px solid #00ffcc; border-radius: 15px;
+            padding: 20px; color: #00ffcc; z-index: 2000; display: none; max-width: 80%;
+            max-height: 80vh; overflow-y: auto; box-shadow: 0 0 30px rgba(0, 255, 204, 0.5);
+        }
+        .tutorial-overlay.show, .settings-overlay.show, .shop-overlay.show {
+            display: block; animation: fadeIn 0.3s ease;
+        }
+        .tutorial-overlay h3, .settings-overlay h3, .shop-overlay h3 {
+            color: #00ffcc; margin-bottom: 15px; font-size: 24px;
+        }
+        .tutorial-overlay p { margin: 10px 0; line-height: 1.5; }
+        .tutorial-overlay .key {
+            display: inline-block; background: #333; padding: 5px 10px; border-radius: 5px;
+            margin: 0 5px; border: 1px solid #666;
+        }
+        .menu-btn {
+            background: rgba(255, 255, 255, 0.1); border: 2px solid #00ffcc; color: white;
+            padding: 10px 20px; margin: 10px; font-size: 18px; font-weight: 700;
+            border-radius: 10px; cursor: pointer; transition: all 0.3s ease;
+        }
+        .menu-btn:hover {
+            background: #00ffcc; color: black; transform: scale(1.1);
+            box-shadow: 0 0 15px #00ffcc;
+        }
+        .menu-btn:active { transform: scale(0.95); }
+        .shop-item {
+            background: rgba(255, 255, 255, 0.1); border: 1px solid #00ffcc; padding: 15px;
+            margin: 10px 0; border-radius: 10px; cursor: pointer; transition: all 0.3s ease;
+        }
+        .shop-item:hover {
+            transform: scale(1.05); background: rgba(255, 255, 255, 0.2);
+        }
+        .shop-item.locked { opacity: 0.5; cursor: not-allowed; }
+        .shop-item .price { color: #ffff00; font-weight: bold; }
+        .shop-item .level { color: #00ffcc; font-size: 0.9em; }
+        .shop-stats {
+            position: fixed; top: 20px; right: 20px; background: rgba(0, 0, 0, 0.8);
+            padding: 10px; border-radius: 5px; border: 1px solid #00ffcc;
+        }
+        .shop-tabs {
+            display: flex; gap: 10px; margin-bottom: 20px;
+        }
+        .tab-btn {
+            background: rgba(255, 255, 255, 0.1); border: 1px solid #00ffcc; color: white;
+            padding: 10px 20px; border-radius: 5px; cursor: pointer; transition: all 0.3s ease;
+        }
+        .tab-btn.active { background: #00ffcc; color: black; }
+        .shop-section { display: none; }
+        .shop-section.active { display: block; }
+        .daily-reward {
+            background: rgba(255, 255, 255, 0.1); border: 1px solid #ffff00; padding: 15px;
+            margin: 20px 0; border-radius: 10px; text-align: center;
+        }
+        .daily-reward button {
+            background: #ffff00; color: black; border: none; padding: 10px 20px;
+            border-radius: 5px; cursor: pointer; margin-top: 10px;
+        }
+        .daily-reward button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .chat-notification {
+            position: fixed; bottom: 20px; right: 20px; background: rgba(0, 0, 0, 0.8);
+            color: white; padding: 10px; border-radius: 5px; animation: slideIn 0.3s ease;
+        }
+        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.7; transform: scale(1.1); } }
+        @keyframes shake { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(-3px, -3px); } 50% { transform: translate(3px, -3px); } 75% { transform: translate(-3px, 3px); } }
+        @keyframes rainbow { 0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translate(-50%, -50%) scale(0.9); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        .pulse { animation: pulse 0.8s infinite; }
+        .shake { animation: shake 0.1s ease-in-out; }
+        .rainbow { animation: rainbow 2s linear infinite; }
+        
+        .wave-warning {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ff0000;
+            font-size: 36px;
+            font-weight: 900;
+            text-shadow: 0 0 20px #ff0000;
+            z-index: 1000;
+            animation: waveWarning 2s ease-out forwards;
+        }
+
+        @keyframes waveWarning {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            20% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+            80% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container" id="gameContainer">
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <div class="ui">
+            <div>💯 SCORE: <span id="score">0</span></div>
+            <div>❤️ LIVES: <span id="lives">3</span></div>
+            <div>🚀 LEVEL: <span id="level">1</span></div>
+            <div>⚡ ENERGY: <span id="energy">100</span>%</div>
+            <div>🏆 ACHIEVEMENTS: <span id="achievements">0</span>/15</div>
+        </div>
+        <div class="combo-display" id="comboDisplay" style="display: none;">
+            <div>🔥 COMBO x<span id="comboCount">0</span></div>
+            <div style="font-size: 14px;" id="comboText">NICE!</div>
+        </div>
+        <div class="power-display" id="powerDisplay"></div>
+        <div class="controls">
+            WASD/Arrows: Move • Space: Shoot • Q: Quantum Dash • E: Time Control • C: NUKE
+        </div>
+        <div class="start-screen" id="startScreen">
+            <h1>🚀 SPACE CHAOS 💀</h1>
+            <h2 class="rainbow">NEON EDITION</h2>
+            <p class="pulse">Press SPACE to start the chaos!</p>
+            <div style="font-size: 18px; margin-top: 20px;">
+                <p>🔥 15 Achievements • 💀 Boss Battles • 🎮 Neon Mode</p>
+                <p>⚡ Power-ups Galore • 🌈 RGB Everything • 💯 Epic Combos</p>
+            </div>
+            <div style="margin-top: 20px; display: flex; gap: 10px;">
+                <button id="showTutorialBtn" class="menu-btn">🎮 How to Play</button>
+                <button id="showShopBtn" class="menu-btn">🛍️ Shop</button>
+                <button id="showSettingsBtn" class="menu-btn">⚙️ Settings</button>
+            </div>
+        </div>
+        <div class="game-over" id="gameOver">
+            <h2>💀 RIP GAMER 💀</h2>
+            <p>Press R to respawn</p>
+        </div>
+        <div class="level-up" id="levelUp">
+            <div>🚀 LEVEL UP! 🚀</div>
+        </div>
+        <div class="boss-warning" id="bossWarning">
+            <div>⚠️ BOSS INCOMING ⚠️</div>
+        </div>
+        <div class="achievement-popup" id="achievementPopup">
+            <div>🏆 ACHIEVEMENT UNLOCKED! 🏆</div>
+            <div id="achievementText"></div>
+        </div>
+        <div class="tutorial-overlay" id="tutorialOverlay">
+            <h3>🎮 HOW TO PLAY</h3>
+            <p>Welcome to SPACE CHAOS: Neon Edition! Survive the neon chaos and dominate the galaxy with these controls and tips:</p>
+            <p><strong>Move:</strong> <span class="key">WASD</span> or <span class="key">ARROWS</span> to navigate your ship.</p>
+            <p><strong>Shoot:</strong> <span class="key">SPACE</span> to fire your primary weapon.</p>
+            <p><strong>Quantum Dash:</strong> <span class="key">Q</span> to teleport forward, damaging enemies in your path (35% energy).</p>
+            <p><strong>Time Control:</strong> <span class="key">E</span> to slow time for 3 seconds, giving you the edge (60% energy).</p>
+            <p><strong>NUKE:</strong> Hold <span class="key">C</span> to charge a devastating blast, release to fire (25%+ energy).</p>
+            <h4>🛸 Enemy Types</h4>
+            <p><strong>Normal Enemy:</strong> Standard foes with moderate speed and health (1 HP). They move downward steadily and are worth <strong>10 points</strong>. Watch their numbers grow as levels increase!</p>
+            <p><strong>Fast Enemy:</strong> Speedy red ships with lower health (1 HP) but double the speed of normal enemies. They dart down the screen, making them tricky to hit. Worth <strong>20 points</strong>.</p>
+            <p><strong>Tank Enemy:</strong> Bulky gray ships with high health (5 HP) and slow movement. They occasionally shoot red projectiles at you, so keep moving! Worth <strong>50 points</strong>.</p>
+            <p><strong>Splitter Enemy:</strong> Green enemies with moderate health (2 HP). When destroyed, they split into two smaller, faster versions that zig-zag across the screen. Each split enemy is worth <strong>15 points</strong>.</p>
+            <h4>🎁 Power-Ups</h4>
+            <p>Defeated enemies may drop power-ups to help you survive the chaos:</p>
+            <p><strong>Weapon (⚡):</strong> Grants a random special weapon (Spread, Laser, Quantum, or Rainbow) for 10 seconds.</p>
+            <p><strong>Shield (🛡️):</strong> Provides a protective shield for 5 seconds, blocking all damage.</p>
+            <p><strong>Energy (🔋):</strong> Restores 50% of your energy, allowing more ability usage.</p>
+            <p><strong>Life (❤️):</strong> Grants an extra life to keep you in the fight.</p>
+            <p><strong>Speed Boost (🏃):</strong> Increases your movement speed by 50% for 10 seconds.</p>
+            <p><strong>Combo Booster (🔥):</strong> Instantly increases your combo multiplier by 5, boosting your score.</p>
+            <p><strong>Magnet (🧲):</strong> Attracts other power-ups toward you for 10 seconds, making them easier to collect.</p>
+            <p><strong>Tip:</strong> Watch for enemy patterns and use your abilities strategically to rack up combos and survive boss waves every 5 levels!</p>
+            <p>Press <span class="key">SPACE</span> to start the chaos!</p>
+            <button id="closeTutorialBtn" class="menu-btn">Close</button>
+        </div>
+        <div class="settings-overlay" id="settingsOverlay">
+            <h3>⚙️ Settings</h3>
+            <div class="settings-section">
+                <h4>Difficulty</h4>
+                <select id="difficultySelect">
+                    <option value="easy">Easy</option>
+                    <option value="normal" selected>Normal</option>
+                    <option value="hard">Hard</option>
+                </select>
+            </div>
+            <div class="settings-section">
+                <h4>Performance</h4>
+                <select id="particleSelect">
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high" selected>High</option>
+                </select>
+            </div>
+            <div class="settings-section">
+                <h4>Game Speed</h4>
+                <input type="range" id="speedSlider" min="0.5" max="1.5" value="1" step="0.05">
+                <span id="speedValue">1.00</span>x
+            </div>
+            <div class="settings-section">
+                <h4>Key Bindings</h4>
+                <div class="key-binding">
+                    <span>Move:</span>
+                    <input type="text" value="WASD" readonly>
+                </div>
+                <div class="key-binding">
+                    <span>Shoot:</span>
+                    <input type="text" value="SPACE" readonly>
+                </div>
+            </div>
+            <button id="closeSettingsBtn" class="menu-btn">Close</button>
+        </div>
+        <div class="shop-overlay" id="shopOverlay">
+            <h3>🛍️ SHOP</h3>
+            <div class="shop-tabs">
+                <button class="tab-btn active" data-tab="ships">🚀 Ships</button>
+                <button class="tab-btn" data-tab="upgrades">⚡ Upgrades</button>
+                <button class="tab-btn" data-tab="abilities">✨ Abilities</button>
+                <button class="tab-btn" data-tab="cosmetics">🎨 Cosmetics</button>
+            </div>
+            <div class="shop-sections">
+                <div class="shop-section active" id="shipsSection">
+                    <h4>🚀 Ships</h4>
+                    <div class="shop-items" id="shipItems"></div>
+                </div>
+                <div class="shop-section" id="upgradesSection">
+                    <h4>⚡ Upgrades</h4>
+                    <div class="shop-items" id="upgradeItems"></div>
+                </div>
+                <div class="shop-section" id="abilitiesSection">
+                    <h4>✨ Special Abilities</h4>
+                    <div class="shop-items" id="abilityItems"></div>
+                </div>
+                <div class="shop-section" id="cosmeticsSection">
+                    <h4>🎨 Cosmetics</h4>
+                    <div class="shop-items" id="cosmeticItems"></div>
+                </div>
+            </div>
+            <div class="shop-stats">
+                <div>💰 Coins: <span id="coinCount">0</span></div>
+                <div>🔥 Streak: <span id="streakCount">0</span></div>
+            </div>
+            <div class="daily-reward" id="dailyReward">
+                <h4>🎁 Daily Reward</h4>
+                <p>Come back tomorrow for more coins!</p>
+                <button id="claimReward" disabled>Claim Reward</button>
+            </div>
+            <button id="closeShopBtn" class="menu-btn">Close</button>
+        </div>
+    </div>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Game state
+        let gameState = 'start';
+        let score = 0, lives = 3, level = 1, energy = 100, combo = 0, comboTimer = 0;
+        let timeSlowActive = false, screenShake = 0, achievementCount = 0;
+        let waveCooldown = 0;
+        let isWaveWarningActive = false;
+        let initialWaveCooldown = 900; // 15 seconds at 60 FPS
+        let stats = {
+            enemiesKilled: 0, quantumDashes: 0, timeSlows: 0, powerUpsCollected: 0,
+            chargeShots: 0, gameStartTime: 0, levelStartTime: 0, damageTakenThisLevel: 0,
+            splittersKilled: 0, tanksKilled: 0, fastEnemiesKilled: 0, bossesKilled: 0
+        };
+        let player = {
+            x: canvas.width / 2 - 20, y: canvas.height - 80, width: 40, height: 30,
+            speed: 6, color: '#00ffcc', weaponType: 'normal', weaponTimer: 0,
+            shield: 0, dashCooldown: 0, chargeShot: 0, rainbowMode: false,
+            speedBoostTimer: 0,
+            magnetTimer: 0
+        };
+        let bullets = [], enemies = [], particles = [], stars = [], powerUps = [], trails = [];
+        let keys = {};
+
+        let lastShot = 0;
+        console.log('Global lastShot value after declaration:', lastShot);
+
+        // Combo levels
+        const comboLevels = {
+            5: { text: "POGGERS!", color: "#ff00ff" },
+            10: { text: "INSANE!", color: "#ffff00" },
+            15: { text: "UNSTOPPABLE!", color: "#ff6600" },
+            25: { text: "GODLIKE!", color: "#ff0000" }
+        };
+
+        // Meme texts
+        const memeTexts = {
+            kill: ["DELETED!", "YEETED!", "NO SCOPE!", "GET REKT!", "BONK!", "BASED!", "CRINGE ELIMINATED!", "TOUCH GRASS!"],
+            combo: ["POGGERS!", "SHEESH!", "BUILT DIFFERENT!", "NO CAP!", "RATIO!", "SLAY QUEEN!", "PERIODT!", "FIRE!"],
+            death: ["SKILL ISSUE", "GET GOOD", "L + RATIO", "TOUCHGRASS.EXE", "MALDING RN", "COPE HARDER"]
+        };
+
+        // Achievements
+        const achievements = {
+            firstKill: { name: "First Blood", desc: "Kill your first enemy", unlocked: false },
+            combo10: { name: "Combo King", desc: "Get a 10x combo", unlocked: false },
+            score1000: { name: "Big Numbers", desc: "Score 1000 points", unlocked: false },
+            level5: { name: "Gamer Mode", desc: "Reach level 5", unlocked: false },
+            quantum50: { name: "Quantum Gamer", desc: "Use quantum dash 50 times", unlocked: false },
+            timeLord: { name: "Time Lord", desc: "Use time slow 25 times", unlocked: false },
+            destroyer: { name: "Destroyer", desc: "Kill 100 enemies", unlocked: false },
+            survivor: { name: "Survivor", desc: "Survive 5 minutes", unlocked: false },
+            speedRunner: { name: "Speed Runner", desc: "Reach level 10 in under 3 minutes", unlocked: false },
+            powerup: { name: "Power Hungry", desc: "Collect 50 power-ups", unlocked: false },
+            overkill: { name: "Overkill", desc: "Get a 25x combo", unlocked: false },
+            nuke: { name: "Nuke Master", desc: "Use charge shot 30 times", unlocked: false },
+            legend: { name: "Absolute Legend", desc: "Score 10000 points", unlocked: false },
+            splitterSlayer: { name: "Split Slayer", desc: "Destroy 50 splitters", unlocked: false },
+            tankBuster: { name: "Tank Buster", desc: "Destroy 25 tank enemies", unlocked: false },
+            speedDemon: { name: "Speed Demon", desc: "Destroy 100 fast enemies", unlocked: false },
+            bossHunter: { name: "Boss Hunter", desc: "Defeat 5 boss enemies", unlocked: false }
+        };
+
+        // Weapons
+        const weapons = {
+            normal: { color: '#ffff00', damage: 1, speed: 10, size: 4 },
+            spread: { color: '#ff6600', damage: 1, speed: 8, size: 3 },
+            laser: { color: '#ff00ff', damage: 2, speed: 15, size: 2 },
+            quantum: { color: '#00ff88', damage: 3, speed: 12, size: 6 },
+            rainbow: { color: '#ffffff', damage: 4, speed: 11, size: 5 }
+        };
+
+        // Global game speed multiplier (adjust to change overall game speed)
+        let gameSpeedMultiplier = 0.4; // 0.8 means 80% speed
+
+        // Initialize stars
+        for (let i = 0; i < 200; i++) {
+            stars.push({
+                x: Math.random() * canvas.width, y: Math.random() * canvas.height,
+                size: Math.random() * 4 + 1, speed: Math.random() * 4 + 1,
+                twinkle: Math.random() * Math.PI * 2, color: `hsl(${Math.random() * 360}, 100%, 70%)`
+            });
+        }
+
+        // Game settings
+        let gameSettings = {
+            difficulty: 'normal', particleCount: 'high', effects: 'high',
+            sound: true, music: true, highScore: 0, coins: 0,
+            unlockedShips: ['classic'], currentShip: 'classic',
+            upgrades: { speed: 0, fireRate: 0, damage: 0, shield: 0, energy: 0 },
+            specialAbilities: { timeWarp: false, blackHole: false, laserBeam: false },
+            cosmetics: { trails: 'default', explosions: 'default', background: 'default' },
+            dailyRewards: { lastClaim: null, streak: 0 },
+            gameSpeed: 0.4 // Set default game speed to even slower (0.4 = 40% speed)
+        };
+
+        // Shop items
+        const shopItems = {
+            ships: {
+                neon: { price: 1000, name: "Neon Ship", desc: "Glowing pink diamond ship" },
+                plasma: { price: 2000, name: "Plasma Ship", desc: "Energy-based circular ship" },
+                emoji: { price: 500, name: "Emoji Ship", desc: "Custom emoji spaceship" }
+            },
+            upgrades: {
+                speed: { price: 500, name: "Speed Boost", desc: "+10% movement speed", maxLevel: 5 },
+                fireRate: { price: 800, name: "Rapid Fire", desc: "+15% fire rate", maxLevel: 5 },
+                damage: { price: 1000, name: "Power Shot", desc: "+20% damage", maxLevel: 5 },
+                shield: { price: 1500, name: "Shield Boost", desc: "+25% shield duration", maxLevel: 3 },
+                energy: { price: 1200, name: "Energy Core", desc: "+30% energy capacity", maxLevel: 3 }
+            },
+            specialAbilities: {
+                timeWarp: { price: 3000, name: "Time Warp", desc: "Temporarily reverse time for 3 seconds", cooldown: 300 },
+                blackHole: { price: 4000, name: "Black Hole", desc: "Create a black hole that sucks in enemies", cooldown: 400 },
+                laserBeam: { price: 5000, name: "Laser Beam", desc: "Fire a powerful continuous laser beam", cooldown: 500 }
+            },
+            cosmetics: {
+                rainbowTrail: { price: 1000, name: "Rainbow Trail", desc: "Colorful trail behind your ship" },
+                neonExplosion: { price: 1500, name: "Neon Explosion", desc: "Glowing explosion effects" },
+                spaceBackground: { price: 2000, name: "Space Background", desc: "Dynamic space background" }
+            }
+        };
+
+        function saveGame() {
+            const saveData = {
+                settings: gameSettings,
+                highScore: Math.max(gameSettings.highScore, score),
+                coins: gameSettings.coins,
+                achievements: achievements // Add achievements to save data
+            };
+            localStorage.setItem('spaceChaosSave', JSON.stringify(saveData));
+        }
+
+        function loadGame() {
+            const saveData = localStorage.getItem('spaceChaosSave');
+            if (saveData) {
+                const data = JSON.parse(saveData);
+                // Load existing settings and merge with default settings to add new properties like gameSpeed
+                gameSettings = { ...gameSettings, ...data.settings };
+                score = Math.max(score, data.highScore);
+                gameSettings.coins = data.coins;
+                // Load achievements and update achievement count
+                if (data.achievements) {
+                    // Merge loaded achievements, prioritizing saved state
+                    Object.keys(achievements).forEach(key => {
+                        if (data.achievements[key]) {
+                            achievements[key] = data.achievements[key];
+                        }
+                    });
+                    achievementCount = Object.values(achievements).filter(a => a.unlocked).length;
+                }
+                updateShop();
+            }
+        }
+
+        function updateShop() {
+            const shipItems = document.getElementById('shipItems');
+            const upgradeItems = document.getElementById('upgradeItems');
+            const abilityItems = document.getElementById('abilityItems');
+            const cosmeticItems = document.getElementById('cosmeticItems');
+
+            shipItems.innerHTML = Object.entries(shopItems.ships).map(([id, item]) => `
+                <div class="shop-item ${gameSettings.unlockedShips.includes(id) ? '' : 'locked'}"
+                     onclick="${gameSettings.unlockedShips.includes(id) ? `selectShip('${id}')` : `buyShip('${id}')`}">
+                    <h4>${item.name}</h4>
+                    <p>${item.desc}</p>
+                    ${!gameSettings.unlockedShips.includes(id) ?
+                        `<div class="price">💰 ${item.price}</div>` :
+                        `<div class="level">${gameSettings.currentShip === id ? 'Selected' : 'Click to select'}</div>`}
+                </div>
+            `).join('');
+
+            upgradeItems.innerHTML = Object.entries(shopItems.upgrades).map(([id, item]) => `
+                <div class="shop-item ${gameSettings.upgrades[id] >= item.maxLevel ? 'locked' : ''}"
+                     onclick="${gameSettings.upgrades[id] < item.maxLevel ? `buyUpgrade('${id}')` : ''}">
+                    <h4>${item.name}</h4>
+                    <p>${item.desc}</p>
+                    <div class="level">Level: ${gameSettings.upgrades[id]}/${item.maxLevel}</div>
+                    ${gameSettings.upgrades[id] < item.maxLevel ?
+                        `<div class="price">💰 ${item.price * (gameSettings.upgrades[id] + 1)}</div>` :
+                        '<div class="level">MAX LEVEL</div>'}
+                </div>
+            `).join('');
+
+            abilityItems.innerHTML = Object.entries(shopItems.specialAbilities).map(([id, item]) => `
+                <div class="shop-item ${gameSettings.specialAbilities[id] ? '' : 'locked'}"
+                     data-ability="${id}"
+                     onclick="${gameSettings.specialAbilities[id] ? `activateSpecialAbility('${id}')` : `buyAbility('${id}')`}">
+                    <h4>${item.name}</h4>
+                    <p>${item.desc}</p>
+                    ${!gameSettings.specialAbilities[id] ?
+                        `<div class="price">💰 ${item.price}</div>` :
+                        `<div class="level">Click to activate</div>`}
+                </div>
+            `).join('');
+
+            cosmeticItems.innerHTML = Object.entries(shopItems.cosmetics).map(([id, item]) => `
+                <div class="shop-item ${gameSettings.cosmetics[id] ? '' : 'locked'}"
+                     onclick="${gameSettings.cosmetics[id] ? `selectCosmetic('${id}')` : `buyCosmetic('${id}')`}">
+                    <h4>${item.name}</h4>
+                    <p>${item.desc}</p>
+                    ${!gameSettings.cosmetics[id] ?
+                        `<div class="price">💰 ${item.price}</div>` :
+                        `<div class="level">${gameSettings.cosmetics[id] === 'selected' ? 'Selected' : 'Click to select'}</div>`}
+                </div>
+            `).join('');
+
+            document.getElementById('coinCount').textContent = gameSettings.coins;
+            document.getElementById('streakCount').textContent = gameSettings.dailyRewards.streak;
+        }
+
+        function buyShip(shipId) {
+            const item = shopItems.ships[shipId];
+            if (gameSettings.coins >= item.price) {
+                gameSettings.coins -= item.price;
+                gameSettings.unlockedShips.push(shipId);
+                saveGame();
+                updateShop();
+                showNotification(`Unlocked ${item.name}!`);
+            } else {
+                showNotification("Not enough coins!");
+            }
+        }
+
+        function selectShip(shipId) {
+            gameSettings.currentShip = shipId;
+            saveGame();
+            updateShop();
+            showNotification(`Selected ${shopItems.ships[shipId].name}`);
+        }
+
+        function buyUpgrade(upgradeId) {
+            const item = shopItems.upgrades[upgradeId];
+            const currentLevel = gameSettings.upgrades[upgradeId];
+            const price = item.price * (currentLevel + 1);
+
+            if (gameSettings.coins >= price && currentLevel < item.maxLevel) {
+                gameSettings.coins -= price;
+                gameSettings.upgrades[upgradeId]++;
+                applyUpgrades();
+                saveGame();
+                updateShop();
+                showNotification(`Upgraded ${item.name} to level ${currentLevel + 1}!`);
+            } else {
+                showNotification("Cannot upgrade!");
+            }
+        }
+
+        function applyUpgrades() {
+            player.speed = 6 * (1 + gameSettings.upgrades.speed * 0.1);
+            player.fireRate = 1 + gameSettings.upgrades.fireRate * 0.15;
+            player.damage = 1 + gameSettings.upgrades.damage * 0.2;
+            player.shieldDuration = 300 * (1 + gameSettings.upgrades.shield * 0.25);
+            player.maxEnergy = 100 * (1 + gameSettings.upgrades.energy * 0.3);
+        }
+
+        function buyAbility(abilityId) {
+            const item = shopItems.specialAbilities[abilityId];
+            if (gameSettings.coins >= item.price) {
+                gameSettings.coins -= item.price;
+                gameSettings.specialAbilities[abilityId] = true;
+                saveGame();
+                updateShop();
+                showNotification(`Unlocked ${item.name}!`);
+            } else {
+                showNotification("Not enough coins!");
+            }
+        }
+
+        function buyCosmetic(cosmeticId) {
+            const item = shopItems.cosmetics[cosmeticId];
+            if (gameSettings.coins >= item.price) {
+                gameSettings.coins -= item.price;
+                gameSettings.cosmetics[cosmeticId] = true;
+                saveGame();
+                updateShop();
+                showNotification(`Unlocked ${item.name}!`);
+            } else {
+                showNotification("Not enough coins!");
+            }
+        }
+
+        function selectCosmetic(cosmeticId) {
+            gameSettings.cosmetics[cosmeticId] = 'selected';
+            saveGame();
+            updateShop();
+            showNotification(`Selected ${shopItems.cosmetics[cosmeticId].name}`);
+        }
+
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'chat-notification';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 2000);
+        }
+
+        function checkDailyReward() {
+            const now = new Date();
+            const lastClaim = gameSettings.dailyRewards.lastClaim ? new Date(gameSettings.dailyRewards.lastClaim) : null;
+            if (!lastClaim || now.getDate() !== lastClaim.getDate() || now.getMonth() !== lastClaim.getMonth() || now.getFullYear() !== lastClaim.getFullYear()) {
+                document.getElementById('claimReward').disabled = false;
+            } else {
+                document.getElementById('claimReward').disabled = true;
+            }
+        }
+
+        function claimDailyReward() {
+            const now = new Date();
+            const lastClaim = gameSettings.dailyRewards.lastClaim ? new Date(gameSettings.dailyRewards.lastClaim) : null;
+            if (!lastClaim || now.getDate() !== lastClaim.getDate() || now.getMonth() !== lastClaim.getMonth() || now.getFullYear() !== lastClaim.getFullYear()) {
+                const streak = gameSettings.dailyRewards.streak;
+                const reward = 100 * (streak + 1);
+                gameSettings.coins += reward;
+                gameSettings.dailyRewards.streak = streak + 1;
+                gameSettings.dailyRewards.lastClaim = now.toISOString();
+                showNotification(`Claimed ${reward} coins! Streak: ${streak + 1}`);
+                updateShop();
+                saveGame();
+            }
+        }
+
+        function startGame() {
+            gameState = 'playing';
+            stats.gameStartTime = Date.now();
+            stats.levelStartTime = Date.now();
+            lastShot = 0; // Ensure reset
+            console.log('Game started, lastShot reset to:', lastShot);
+            document.getElementById('startScreen').style.display = 'none';
+            gameCanvas.focus(); // Add focus here
+        }
+
+        function resetGame() {
+            console.log('Resetting game...');
+            gameState = 'start';
+            score = 0;
+            lives = 3;
+            level = 1;
+            energy = 100;
+            combo = 0;
+            comboTimer = 0;
+            isWaveWarningActive = false; // Reset wave warning
+            waveCooldown = initialWaveCooldown / gameSpeedMultiplier; // Apply game speed multiplier to initial cooldown
+            bullets = [];
+            enemies = [];
+            particles = [];
+            powerUps = [];
+            trails = [];
+            player = {
+                x: canvas.width / 2 - 20,
+                y: canvas.height - 80,
+                width: 40,
+                height: 30,
+                speed: 6,
+                color: '#00ffcc',
+                weaponType: 'normal',
+                weaponTimer: 0,
+                shield: 0,
+                dashCooldown: 0,
+                chargeShot: 0,
+                rainbowMode: false,
+                speedBoostTimer: 0,
+                magnetTimer: 0
+            };
+            keys = {}; // Clear all key states
+            Object.keys(stats).forEach(key => {
+                if (typeof stats[key] === 'number') stats[key] = 0;
+            });
+            document.getElementById('gameOver').style.display = 'none';
+            document.getElementById('startScreen').style.display = 'block';
+            document.getElementById('comboDisplay').style.display = 'none';
+            document.getElementById('levelUp').style.display = 'none';
+            document.getElementById('bossWarning').style.display = 'none';
+            lastShot = 0; // Reset lastShot
+            updateUI();
+            saveGame();
+            gameCanvas.focus(); // Add focus here
+        }
+
+        function updateUI() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('lives').textContent = lives;
+            document.getElementById('level').textContent = level;
+            document.getElementById('energy').textContent = Math.floor(energy);
+            document.getElementById('achievements').textContent = achievementCount;
+            if (combo > 1) {
+                document.getElementById('comboDisplay').style.display = 'block';
+                document.getElementById('comboCount').textContent = combo;
+                const comboElement = document.getElementById('comboDisplay');
+                const comboTextElement = document.getElementById('comboText');
+                let highestLevel = 0;
+                for (const level in comboLevels) {
+                    if (combo >= parseInt(level)) highestLevel = parseInt(level);
+                }
+                if (highestLevel > 0) {
+                    const levelData = comboLevels[highestLevel];
+                    comboTextElement.textContent = levelData.text;
+                    comboElement.style.color = levelData.color;
+                    if (highestLevel >= 15) comboElement.classList.add('mega');
+                    else comboElement.classList.remove('mega');
+                }
+            } else {
+                document.getElementById('comboDisplay').style.display = 'none';
+                document.getElementById('comboDisplay').classList.remove('mega');
+            }
+            const powerDisplay = document.getElementById('powerDisplay');
+            let powerText = '';
+            if (player.weaponTimer > 0) powerText += `🔫 ${player.weaponType.toUpperCase()}: ${Math.ceil(player.weaponTimer/60)}s\n`;
+            if (player.shield > 0) powerText += `🛡️ SHIELD: ${Math.ceil(player.shield/60)}s\n`;
+            if (player.speedBoostTimer > 0) powerText += `🏃 SPEED BOOST: ${Math.ceil(player.speedBoostTimer/60)}s\n`;
+            if (player.magnetTimer > 0) powerText += `🧲 MAGNET ACTIVE: ${Math.ceil(player.magnetTimer/60)}s\n`;
+            if (timeSlowActive) powerText += `⏰ TIME CONTROL ACTIVE!\n`;
+            if (player.rainbowMode) powerText += `🌈 RAINBOW MODE!\n`;
+            powerDisplay.textContent = powerText;
+        }
+
+        function checkAchievements() {
+            if (!achievements.firstKill.unlocked && stats.enemiesKilled >= 1) unlockAchievement('firstKill');
+            if (!achievements.combo10.unlocked && combo >= 10) unlockAchievement('combo10');
+            if (!achievements.overkill.unlocked && combo >= 25) unlockAchievement('overkill');
+            if (!achievements.score1000.unlocked && score >= 1000) unlockAchievement('score1000');
+            if (!achievements.legend.unlocked && score >= 10000) unlockAchievement('legend');
+            if (!achievements.level5.unlocked && level >= 5) unlockAchievement('level5');
+            if (!achievements.quantum50.unlocked && stats.quantumDashes >= 50) unlockAchievement('quantum50');
+            if (!achievements.timeLord.unlocked && stats.timeSlows >= 25) unlockAchievement('timeLord');
+            if (!achievements.destroyer.unlocked && stats.enemiesKilled >= 100) unlockAchievement('destroyer');
+            if (!achievements.powerup.unlocked && stats.powerUpsCollected >= 50) unlockAchievement('powerup');
+            if (!achievements.nuke.unlocked && stats.chargeShots >= 30) unlockAchievement('nuke');
+            if (!achievements.splitterSlayer.unlocked && stats.splittersKilled >= 50) unlockAchievement('splitterSlayer');
+            if (!achievements.tankBuster.unlocked && stats.tanksKilled >= 25) unlockAchievement('tankBuster');
+            if (!achievements.speedDemon.unlocked && stats.fastEnemiesKilled >= 100) unlockAchievement('speedDemon');
+            if (!achievements.bossHunter.unlocked && stats.bossesKilled >= 5) unlockAchievement('bossHunter');
+            
+            const gameTime = (Date.now() - stats.gameStartTime) / 1000;
+            if (!achievements.survivor.unlocked && gameTime >= 300) unlockAchievement('survivor');
+            if (!achievements.speedRunner.unlocked && level >= 10 && gameTime <= 180) unlockAchievement('speedRunner');
+        }
+
+        function unlockAchievement(id) {
+            // Only unlock and show notification if not already unlocked
+            if (!achievements[id].unlocked) {
+                achievements[id].unlocked = true;
+                achievementCount++;
+                saveGame(); // Save after unlocking an achievement
+                const popup = document.getElementById('achievementPopup');
+                const text = document.getElementById('achievementText');
+                text.innerHTML = `<strong>${achievements[id].name}</strong><br>${achievements[id].desc}`;
+                popup.classList.add('show');
+                setTimeout(() => popup.classList.remove('show'), 3000);
+                screenShake = 20;
+                // Reduced particle count for achievement explosion
+                createExplosion(canvas.width/2, canvas.height/2, '#ffff00', 15);
+                spawnMemeText(canvas.width/2, canvas.height/2, "ACHIEVEMENT GET!");
+            }
+        }
+
+        function spawnMemeText(x, y, text) {
+            const memeDiv = document.createElement('div');
+            memeDiv.className = 'meme-text';
+            memeDiv.textContent = text;
+            memeDiv.style.left = x + 'px';
+            memeDiv.style.top = y + 'px';
+            document.getElementById('gameContainer').appendChild(memeDiv);
+            setTimeout(() => memeDiv.remove(), 2000);
+        }
+
+        function handleInput() {
+            console.log('handleInput called. GameState:', gameState);
+            if (gameState !== 'playing') return;
+            
+            // Apply gameSpeedMultiplier to player speed
+            let speed = (timeSlowActive ? player.speed * 0.4 : player.speed) * gameSpeedMultiplier;
+            if (player.speedBoostTimer > 0) speed *= 1.5;
+            
+            let moved = false;
+            if ((keys['ArrowLeft'] || keys['KeyA']) && player.x > 0) { player.x -= speed; moved = true; }
+            if ((keys['ArrowRight'] || keys['KeyD']) && player.x < canvas.width - player.width) { player.x += speed; moved = true; }
+            if ((keys['ArrowUp'] || keys['KeyW']) && player.y > 0) { player.y -= speed; moved = true; }
+            if ((keys['ArrowDown'] || keys['KeyS']) && player.y < canvas.height - player.height) { player.y += speed; moved = true; }
+            
+            if (moved) {
+                trails.push({
+                    x: player.x + player.width / 2,
+                    y: player.y + player.height / 2,
+                    life: 25,
+                    maxLife: 25,
+                    color: player.rainbowMode ? `hsl(${Date.now() % 360}, 100%, 60%)` : player.color
+                });
+            }
+            
+            console.log('Space key state:', keys[' '], 'All keys:', keys);
+            if (keys[' '] || keys['Space']) {
+                console.log('Space key pressed, calling shoot()');
+                shoot();
+            }
+            
+            if (keys['KeyC'] && energy >= 25) {
+                player.chargeShot = Math.min(player.chargeShot + 3, 100);
+            } else if (player.chargeShot > 0) chargeShoot();
+            
+            if (keys['KeyQ'] && energy >= 35 && player.dashCooldown <= 0) quantumDash();
+            if (keys['KeyE'] && energy >= 60 && !timeSlowActive) activateTimeSlow();
+        }
+
+        function shoot() {
+            const now = Date.now();
+            // console.log(`Shoot called. now: ${now}, lastShot: ${lastShot}`);
+            const weapon = weapons[player.weaponType];
+            const baseDelay = timeSlowActive ? 300 : (player.weaponType === 'laser' ? 100 : 60);
+            const effectiveDelay = baseDelay / (1 + gameSettings.upgrades.fireRate * 0.15);
+            const timeSinceLastShot = now - lastShot;
+            // console.log(`delay: ${baseDelay}, effectiveDelay: ${effectiveDelay}, timeSinceLastShot: ${timeSinceLastShot}`);
+            
+            if (timeSinceLastShot > effectiveDelay) {
+                console.log("Shooting bullet! Type: " + player.weaponType + ", Speed: " + weapon.speed);
+                const centerX = player.x + player.width / 2;
+                bullets.push({
+                    x: centerX - weapon.size / 2,
+                    y: player.y,
+                    width: weapon.size,
+                    height: player.weaponType === 'laser' ? 25 : 12,
+                    speed: weapon.speed,
+                    color: weapon.color,
+                    damage: weapon.damage * (1 + gameSettings.upgrades.damage * 0.2),
+                    vx: 0,
+                    type: player.weaponType,
+                    rainbow: player.rainbowMode
+                });
+                lastShot = now;
+                // console.log('Shot fired, new lastShot:', lastShot);
+                
+                // Add visual feedback for shooting
+                createExplosion(centerX, player.y, weapon.color, 3);
+            } else {
+                // console.log(`Cannot shoot yet - ${Math.ceil((effectiveDelay - timeSinceLastShot) / 16.67)} frames remaining`);
+            }
+        }
+
+        function chargeShoot() {
+            if (player.chargeShot >= 25) {
+                const power = Math.floor(player.chargeShot / 25);
+                const centerX = player.x + player.width / 2;
+                bullets.push({
+                    x: centerX - (power * 5), y: player.y, width: power * 10,
+                    height: power * 6, speed: 8, color: '#ffffff', damage: power * 5 * (1 + gameSettings.upgrades.damage * 0.2),
+                    vx: 0, type: 'nuke', power: power, rainbow: true
+                });
+                energy -= player.chargeShot / 4;
+                stats.chargeShots++;
+                createExplosion(centerX, player.y, '#ffffff', 25);
+                screenShake = 25;
+                spawnMemeText(centerX, player.y - 50, "TACTICAL NUKE!");
+            }
+            player.chargeShot = 0;
+        }
+
+        function quantumDash() {
+            const dashDistance = 120;
+            const newY = Math.max(0, player.y - dashDistance);
+            enemies.forEach(enemy => {
+                if (Math.abs(enemy.x + enemy.width/2 - (player.x + player.width/2)) < 80) {
+                    enemy.health -= 3 * (1 + gameSettings.upgrades.damage * 0.2);
+                    createExplosion(enemy.x + enemy.width/2, enemy.y + enemy.height/2, '#00ff88', 12);
+                }
+            });
+            player.y = newY;
+            energy -= 35;
+            player.dashCooldown = 90;
+            player.shield = 90 * (1 + gameSettings.upgrades.shield * 0.25);
+            stats.quantumDashes++;
+            for (let i = 0; i < 30; i++) {
+                particles.push({
+                    x: player.x + player.width/2, y: player.y + player.height/2,
+                    vx: (Math.random() - 0.5) * 15, vy: (Math.random() - 0.5) * 15,
+                    life: 50, maxLife: 50, color: `hsl(${Math.random() * 360}, 100%, 60%)`
+                });
+            }
+            spawnMemeText(canvas.width/2, canvas.height/2, "QUANTUM DASH!");
+        }
+
+        function activateTimeSlow() {
+            timeSlowActive = true;
+            energy -= 60;
+            stats.timeSlows++;
+            for (let i = 0; i < 20; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width, y: Math.random() * canvas.height,
+                    vx: (Math.random() - 0.5) * 8, vy: (Math.random() - 0.5) * 8,
+                    life: 40, maxLife: 40, color: '#00ffff', size: Math.random() * 3 + 1
+                });
+            }
+            spawnMemeText(canvas.width/2, canvas.height/2, "ZA WARUDO!");
+            setTimeout(() => timeSlowActive = false, 3000);
+        }
+
+        function showWaveWarning(waveType) {
+            if (isWaveWarningActive) return;
+            isWaveWarningActive = true;
+
+            const warning = document.createElement('div');
+            warning.className = 'wave-warning';
+            let warningText = '';
+            switch (waveType) {
+                case 0: warningText = "⚡ SPEED WAVE INCOMING! ⚡"; break;
+                case 1: warningText = "🛡️ TANK SQUAD APPROACHING! 🛡️"; break;
+                case 2: warningText = "🔄 SPLITTER SWARM DETECTED! 🔄"; break;
+                case 3: warningText = "⚠️ MIXED FORMATION INBOUND! ⚠️"; break;
+                case 4: warningText = "💀 BOSS WAVE IMMINENT! 💀"; break;
+            }
+            warning.textContent = warningText;
+            document.getElementById('gameContainer').appendChild(warning);
+            setTimeout(() => {
+                warning.remove();
+                isWaveWarningActive = false;
+            }, 2000);
+        }
+
+        function applySettings() {
+            // Apply difficulty
+            const difficultyModifiers = {
+                easy: { spawnRate: 0.7, health: 0.8, speed: 0.8 },
+                normal: { spawnRate: 1, health: 1, speed: 1 },
+                hard: { spawnRate: 1.3, health: 1.2, speed: 1.2 }
+            };
+            const modifier = difficultyModifiers[gameSettings.difficulty];
+            // Apply to spawnEnemy() by multiplying spawnRate, health, and speed by modifier values
+
+            // Apply particle count
+            const particleLimits = {
+                low: 0.5,
+                medium: 0.75,
+                high: 1
+            };
+            const particleModifier = particleLimits[gameSettings.particleCount];
+            // Use particleModifier when creating particles (e.g., in createExplosion)
+
+            // Apply game speed multiplier
+            gameSpeedMultiplier = gameSettings.gameSpeed;
+        }
+
+        function spawnEnemy() {
+            const difficultyModifiers = {
+                easy: { spawnRate: 1, health: 1, speed: 1 },
+                normal: { spawnRate: 1, health: 1, speed: 1 },
+                hard: { spawnRate: 1.3, health: 1.2, speed: 1.2 }
+            };
+            const modifier = difficultyModifiers[gameSettings.difficulty];
+            const spawnRate = (timeSlowActive ? 0.005 : 0.002 + level * 0.003) * modifier.spawnRate; // Further reduced base spawn rate
+
+            // Decrease wave cooldown, scaled by game speed
+            if (waveCooldown > 0) waveCooldown -= 1 * gameSpeedMultiplier;
+
+            if (waveCooldown <= 0 && Math.random() < 0.05) {
+                const availableWaveTypes = [];
+                if (level >= 2) availableWaveTypes.push(0);
+                if (level >= 3) availableWaveTypes.push(1);
+                if (level >= 4) availableWaveTypes.push(2);
+                if (level >= 5) availableWaveTypes.push(3);
+                if (level % 5 === 0 && level >= 5 && enemies.length === 0) {
+                    availableWaveTypes.push(4);
+                }
+
+                if (availableWaveTypes.length > 0) {
+                    const waveType = availableWaveTypes[Math.floor(Math.random() * availableWaveTypes.length)];
+                    showWaveWarning(waveType);
+                    setTimeout(() => {
+                        switch (waveType) {
+                            case 0:
+                                for (let i = 0; i < 5; i++) {
+                                    enemies.push({
+                                        x: (canvas.width / 6) * (i + 1) - 15,
+                                        y: -30,
+                                        width: 20,
+                                        height: 30,
+                                        speed: 3 * modifier.speed,
+                                        color: '#ff4444',
+                                        health: 1 * modifier.health,
+                                        type: 'fast',
+                                        behavior: 'zigzag',
+                                        shootTimer: 0,
+                                        behaviorTimer: 0
+                                    });
+                                }
+                                spawnMemeText(canvas.width / 2, canvas.height / 2, "SPEED WAVE!");
+                                break;
+                            case 1:
+                                for (let i = 0; i < 3; i++) {
+                                    enemies.push({
+                                        x: (canvas.width / 4) * (i + 1) - 25,
+                                        y: -60,
+                                        width: 50,
+                                        height: 60,
+                                        speed: 1 * modifier.speed,
+                                        color: '#888888',
+                                        health: (5 + Math.floor(level / 5)) * modifier.health,
+                                        type: 'tank',
+                                        shootTimer: 60,
+                                        behaviorTimer: 0,
+                                        behavior: 'straight'
+                                    });
+                                }
+                                spawnMemeText(canvas.width / 2, canvas.height / 2, "TANK SQUAD!");
+                                break;
+                            case 2:
+                                for (let i = 0; i < 4; i++) {
+                                    enemies.push({
+                                        x: (canvas.width / 5) * (i + 1) - 12.5,
+                                        y: -25,
+                                        width: 25,
+                                        height: 25,
+                                        speed: 2 * modifier.speed,
+                                        color: '#44ff44',
+                                        health: 2 * modifier.health,
+                                        type: 'splitter',
+                                        behavior: 'split',
+                                        shootTimer: 0,
+                                        behaviorTimer: 0
+                                    });
+                                }
+                                spawnMemeText(canvas.width / 2, canvas.height / 2, "SPLITTER SWARM!");
+                                break;
+                            case 3:
+                                const positions = [0.2, 0.4, 0.6, 0.8];
+                                positions.forEach((pos, i) => {
+                                    const type = i % 2 === 0 ? 'fast' : 'tank';
+                                    enemies.push({
+                                        x: canvas.width * pos - (type === 'tank' ? 25 : 10),
+                                        y: -30,
+                                        width: type === 'tank' ? 50 : 20,
+                                        height: type === 'tank' ? 60 : 30,
+                                        speed: (type === 'tank' ? 1 : 3) * modifier.speed,
+                                        color: type === 'tank' ? '#888888' : '#ff4444',
+                                        health: (type === 'tank' ? 5 : 1) * modifier.health,
+                                        type: type,
+                                        behavior: type === 'fast' ? 'zigzag' : 'straight',
+                                        shootTimer: type === 'tank' ? 60 : 0,
+                                        behaviorTimer: 0
+                                    });
+                                });
+                                spawnMemeText(canvas.width / 2, canvas.height / 2, "MIXED FORMATION!");
+                                break;
+                            case 4:
+                                spawnBoss();
+                                break;
+                        }
+                        waveCooldown = 600 / gameSpeedMultiplier; // Apply game speed multiplier to wave cooldown
+                    }, 2000);
+                }
+            } else if (Math.random() < spawnRate) {
+                const enemyTypes = [
+                    { type: 'normal', weight: 0.5 },
+                    { type: 'fast', weight: 0.3 },
+                    { type: 'tank', weight: 0.15 },
+                    { type: 'splitter', weight: 0.05 + level * 0.01 }
+                ];
+                const totalWeight = enemyTypes.reduce((sum, e) => sum + e.weight, 0);
+                let rand = Math.random() * totalWeight;
+                let selectedType;
+                for (const enemy of enemyTypes) {
+                    rand -= enemy.weight;
+                    if (rand <= 0) {
+                        selectedType = enemy.type;
+                        break;
+                    }
+                }
+
+                let baseHealth = 1;
+                let baseSpeed = (1 + level * 0.3) * modifier.speed;
+                let enemy = {
+                    x: Math.random() * (canvas.width - 30),
+                    y: -50,
+                    width: 30,
+                    height: 40,
+                    speed: baseSpeed,
+                    color: `hsl(${Math.random() * 60 + 300}, 100%, 50%)`,
+                    health: baseHealth * modifier.health,
+                    type: selectedType,
+                    shootTimer: Math.random() * 120 + 60,
+                    behaviorTimer: 0,
+                    behavior: 'straight'
+                };
+
+                switch (selectedType) {
+                    case 'fast':
+                        enemy.speed *= 2;
+                        enemy.color = '#ff4444';
+                        enemy.width = 20;
+                        enemy.height = 30;
+                        enemy.behavior = level > 3 ? (Math.random() < 0.5 ? 'zigzag' : 'swoop') : 'straight';
+                        break;
+                    case 'tank':
+                        enemy.health = (5 + Math.floor(level / 5)) * modifier.health;
+                        enemy.speed *= 0.5;
+                        enemy.color = '#888888';
+                        enemy.width = 50;
+                        enemy.height = 60;
+                        enemy.shootTimer = 60;
+                        break;
+                    case 'splitter':
+                        enemy.health = 2 * modifier.health;
+                        enemy.color = '#44ff44';
+                        enemy.width = 25;
+                        enemy.height = 25;
+                        enemy.behavior = 'split';
+                        break;
+                }
+
+                if (level >= 5) enemy.speed *= 1.2;
+                if (level >= 10) enemy.health += 1;
+                enemies.push(enemy);
+            }
+        }
+
+        function spawnBoss() {
+            const boss = {
+                x: canvas.width / 2 - 75,
+                y: -100,
+                width: 150,
+                height: 100,
+                speed: 0.5 + level * 0.05,
+                color: '#ff0000',
+                health: 50 + level * 10,
+                type: 'boss',
+                shootTimer: 30,
+                behaviorTimer: 0,
+                behavior: 'pattern',
+                phase: 1,
+                patternIndex: 0,
+                patternTimer: 0
+            };
+            enemies.push(boss);
+            spawnMemeText(canvas.width / 2, canvas.height / 2, "BOSS BATTLE!");
+            document.getElementById('bossWarning').style.display = 'block';
+            setTimeout(() => document.getElementById('bossWarning').style.display = 'none', 2000);
+        }
+
+        function spawnPowerUp(x, y) {
+            if (Math.random() < 0.3) {
+                const types = ['weapon', 'shield', 'energy', 'life', 'speed', 'combo', 'magnet'];
+                const type = types[Math.floor(Math.random() * types.length)];
+                powerUps.push({
+                    x: x, y: y, width: 20, height: 20, type: type,
+                    color: type === 'weapon' ? '#ff6600' : 
+                           type === 'shield' ? '#0088ff' :
+                           type === 'energy' ? '#ffff00' : 
+                           type === 'life' ? '#ff0088' :
+                           type === 'speed' ? '#00ff00' : 
+                           type === 'combo' ? '#ff00ff' : 
+                           type === 'magnet' ? '#8800ff' : '#ffffff',
+                    bobOffset: Math.random() * Math.PI * 2, speed: 2
+                });
+            }
+        }
+
+        function updatePowerUps() {
+            powerUps.forEach(powerUp => {
+                // Apply gameSpeedMultiplier to power-up vertical speed
+                powerUp.y += powerUp.speed * (timeSlowActive ? 0.3 : 1) * gameSpeedMultiplier;
+                powerUp.bobOffset += 0.1;
+
+                if (player.magnetTimer > 0) {
+                    const dx = (player.x + player.width / 2) - (powerUp.x + powerUp.width / 2);
+                    const dy = (player.y + player.height / 2) - (powerUp.y + powerUp.height / 2);
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    if (distance > 0) {
+                        // Apply gameSpeedMultiplier to magnet attraction speed
+                        powerUp.x += (dx / distance) * 3 * gameSpeedMultiplier;
+                        powerUp.y += (dy / distance) * 3 * gameSpeedMultiplier;
+                    }
+                }
+            });
+            powerUps = powerUps.filter(powerUp => powerUp.y < canvas.height + 50);
+        }
+
+        function updateEnemies() {
+            const enemySpeed = timeSlowActive ? 0.3 : 1;
+            enemies = enemies.filter(enemy => {
+                enemy.behaviorTimer++;
+                enemy.shootTimer--;
+
+                // Enemy movement behaviors - Apply gameSpeedMultiplier to position updates
+                switch (enemy.behavior) {
+                    case 'zigzag':
+                        enemy.x += Math.sin(enemy.behaviorTimer / 20) * 5 * enemySpeed * gameSpeedMultiplier;
+                        enemy.y += enemy.speed * enemySpeed * gameSpeedMultiplier;
+                        break;
+                    case 'swoop':
+                        enemy.x += Math.cos(enemy.behaviorTimer / 30) * 7 * enemySpeed * gameSpeedMultiplier;
+                        enemy.y += enemy.speed * enemySpeed * gameSpeedMultiplier;
+                        break;
+                    case 'split':
+                        enemy.y += enemy.speed * enemySpeed * gameSpeedMultiplier;
+                        break;
+                    case 'pattern':
+                        if (enemy.type === 'boss') {
+                            enemy.patternTimer++;
+                            if (enemy.patternTimer >= 120) {
+                                enemy.patternIndex = (enemy.patternIndex + 1) % 3;
+                                enemy.patternTimer = 0;
+                            }
+                            // Apply movement based on pattern index
+                            switch (enemy.patternIndex) {
+                                case 0:
+                                    // Sinusoidal horizontal movement around center - Apply gameSpeedMultiplier
+                                    enemy.x = canvas.width / 2 - enemy.width / 2 + Math.sin(enemy.patternTimer * 0.05 * gameSpeedMultiplier) * 100 * gameSpeedMultiplier;
+                                    break;
+                                case 1:
+                                    // Gentle vertical movement + slight horizontal drift - Apply gameSpeedMultiplier
+                                    enemy.y += enemy.speed * enemySpeed * 0.5 * gameSpeedMultiplier;
+                                    enemy.x += Math.sin(enemy.behaviorTimer / 40 * gameSpeedMultiplier) * 2 * enemySpeed * gameSpeedMultiplier;
+                                    break;
+                                case 2:
+                                   // More aggressive movement - Apply gameSpeedMultiplier
+                                    if (enemy.behaviorTimer % 60 === 0) {
+                                        const targetX = player.x + player.width / 2;
+                                        enemy.vx = (targetX - enemy.x) / (60 / gameSpeedMultiplier); // Adjust vx based on speed
+                                    }
+                                    enemy.x += (enemy.vx || 0) * enemySpeed * gameSpeedMultiplier;
+                                    enemy.y += enemy.speed * enemySpeed * gameSpeedMultiplier;
+                                    break;
+                            }
+
+                            // Boss shooting logic (simplified for now, can be expanded per phase)
+                            if (enemy.shootTimer > 0) enemy.shootTimer--;
+                            if (enemy.shootTimer <= 0) {
+                                // Example: Shoot targeted bullets periodically
+                                spawnEnemyBullet(enemy.x + enemy.width / 2, enemy.y + enemy.height, 'targeted');
+                                enemy.shootTimer = (60 - level * 2) / gameSpeedMultiplier; // Adjust shoot timer
+                            }
+
+                             // Check phase transitions based on health
+                             const maxHealth = 50 + level * 10;
+                             if (enemy.health <= maxHealth * 0.5 && enemy.phase === 1) {
+                                 enemy.phase = 2;
+                                 spawnMemeText(enemy.x + enemy.width / 2, enemy.y, "PHASE 2!");
+                                  enemy.patternIndex = 0; // Reset pattern on phase change
+                                  enemy.patternTimer = 0;
+                             } else if (enemy.health <= maxHealth * 0.25 && enemy.phase === 2) {
+                                  enemy.phase = 3;
+                                  spawnMemeText(enemy.x + enemy.width / 2, enemy.y, "FINAL PHASE!");
+                                   enemy.patternIndex = 0; // Reset pattern on phase change
+                                   enemy.patternTimer = 0;
+                             }
+                        }
+                        break;
+                    default:
+                        enemy.y += enemy.speed * enemySpeed;
+                }
+
+                // Keep enemies within bounds
+                enemy.x = Math.max(0, Math.min(enemy.x, canvas.width - enemy.width));
+
+                // Splitter behavior on death (moved here from checkCollisions for better structure)
+                 if (enemy.health <= 0 && enemy.type === 'splitter') {
+                     const splitCount = enemy.width > 15 ? 2 : 0;
+                     for (let i = 0; i < splitCount; i++) {
+                         enemies.push({
+                             x: enemy.x + (i - 0.5) * 10,
+                             y: enemy.y,
+                             width: enemy.width * 0.6,
+                             height: enemy.height * 0.6,
+                             speed: enemy.speed * 1.5,
+                             color: '#88ff88',
+                             health: 1,
+                             type: 'split', // Changed type to 'split' for the smaller parts
+                             behavior: 'zigzag',
+                             behaviorTimer: 0,
+                             shootTimer: 0
+                         });
+                     }
+                      // The scoring, stats update, explosion, power-up, and meme text for the original splitter will be handled in checkCollisions
+                     return false; // Remove original splitter
+                 }
+
+                return enemy.y < canvas.height + enemy.height && enemy.health > 0;
+            });
+
+             // Handle scoring, stats update, explosions, power-ups, and meme text for enemy deaths here (except for the original splitter which triggers splits)
+             // This prevents processing enemies multiple times if they split or are hit by multiple bullets
+             for (let i = enemies.length - 1; i >= 0; i--) {
+                 const enemy = enemies[i];
+                 if (enemy.health <= 0 && enemy.type !== 'splitter') { // Don't process original splitters here
+                      let points;
+                      switch (enemy.type) {
+                          case 'tank':
+                              points = 50;
+                              stats.tanksKilled++;
+                              break;
+                          case 'fast':
+                              points = 20;
+                              stats.fastEnemiesKilled++;
+                              break;
+                          case 'split': // Handle points for the smaller splitter parts
+                              points = 15;
+                              // Note: splittersKilled is incremented when the original splitter is destroyed
+                              break;
+                          case 'boss':
+                              points = 500;
+                              stats.bossesKilled++;
+                              break;
+                          default: // Normal enemies
+                              points = 10;
+                      }
+                     score += points * (combo > 1 ? combo : 1);
+                     combo++;
+                     comboTimer = 180;
+                     stats.enemiesKilled++;
+                     // Add energy and coins for killing enemy
+                     energy = Math.min(player.maxEnergy || 100, energy + 5); // Add 5 energy per kill
+                     gameSettings.coins += Math.floor(points / 2); // Add coins based on points (half of points value)
+                     createExplosion(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2, enemy.color, 15);
+                     spawnPowerUp(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2);
+                     spawnMemeText(enemy.x + enemy.width / 2, enemy.y, memeTexts.kill[Math.floor(Math.random() * memeTexts.kill.length)]);
+                     if (Math.random() < 0.1) spawnMemeText(enemy.x + enemy.width / 2, enemy.y, memeTexts.combo[Math.floor(Math.random() * memeTexts.combo.length)]);
+                     enemies.splice(i, 1); // Remove the enemy after processing its death
+                 }
+             }
+         }
+
+        // Helper function to spawn enemy bullets with variations
+        function spawnEnemyBullet(x, y, type, angleOffset = 0) {
+            const bullet = {
+                x: x - 5, y: y, width: 10, height: 10, speed: 4 * gameSpeedMultiplier, // Apply gameSpeedMultiplier to base speed
+                color: '#ff0000', damage: 1, vx: 0, vy: 0, enemy: true
+            };
+
+            if (type === 'straight') {
+                bullet.vy = bullet.speed;
+            } else if (type === 'spiral') {
+                const angle = Date.now() / 100 + angleOffset;
+                bullet.vx = Math.cos(angle) * bullet.speed;
+                bullet.vy = Math.sin(angle) * bullet.speed;
+            } else if (type === 'targeted') {
+                const dx = player.x + player.width / 2 - x;
+                const dy = player.y + player.height / 2 - y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance > 0) {
+                    bullet.vx = (dx / distance) * bullet.speed;
+                    bullet.vy = (dy / distance) * bullet.speed;
+                }
+            }
+            bullets.push(bullet);
+        }
+
+        function updateBullets() {
+            const bulletSpeedMultiplier = timeSlowActive ? 0.3 : 1;
+            bullets.forEach(bullet => {
+                // Move bullets based on their velocity - Apply gameSpeedMultiplier
+                if (!bullet.enemy) { // Player bullets move up
+                    bullet.y -= bullet.speed * bulletSpeedMultiplier * gameSpeedMultiplier;
+                    bullet.vx = 0; // Explicitly set horizontal velocity to 0
+                } else { // Enemy bullets move based on vx/vy
+                     bullet.x += bullet.vx * bulletSpeedMultiplier * gameSpeedMultiplier;
+                     bullet.y += bullet.vy * bulletSpeedMultiplier * gameSpeedMultiplier;
+                }
+               // console.log(`Bullet update: type=${bullet.type}, x=${bullet.x}, y=${bullet.y}`);
+            });
+
+            // Filter out bullets that are off-screen
+            bullets = bullets.filter(bullet => bullet.y > -10 && bullet.y < canvas.height + 10 && bullet.x > -10 && bullet.x < canvas.width + 10);
+            //console.log('Number of bullets after filtering:', bullets.length);
+        }
+
+        function updateParticles() {
+            particles.forEach(particle => {
+                // Apply gameSpeedMultiplier to particle movement
+                particle.x += particle.vx * (timeSlowActive ? 0.3 : 1) * gameSpeedMultiplier;
+                particle.y += particle.vy * (timeSlowActive ? 0.3 : 1) * gameSpeedMultiplier;
+                particle.life--;
+                particle.vy += 0.1 * gameSpeedMultiplier; // Apply to gravity
+            });
+            particles = particles.filter(particle => particle.life > 0);
+        }
+
+        function updateTrails() {
+            trails.forEach(trail => {
+                trail.life--;
+                // Apply gameSpeedMultiplier to trail movement
+                trail.vy += 0.05 * gameSpeedMultiplier; // Apply to gravity
+                trail.y += trail.vy * gameSpeedMultiplier;
+            });
+            trails = trails.filter(trail => trail.life > 0);
+        }
+
+        function updateStars() {
+            stars.forEach(star => {
+                // Apply gameSpeedMultiplier to star movement
+                star.y += star.speed * (timeSlowActive ? 0.3 : 1) * gameSpeedMultiplier;
+                star.twinkle += 0.1;
+                if (star.y > canvas.height) star.y = 0;
+            });
+        }
+
+        function updateTimers() {
+            if (player.weaponTimer > 0) player.weaponTimer--;
+            if (player.shield > 0) player.shield--;
+            if (player.dashCooldown > 0) player.dashCooldown--;
+            if (player.speedBoostTimer > 0) player.speedBoostTimer--;
+            if (player.magnetTimer > 0) player.magnetTimer--;
+            if (comboTimer > 0) {
+                comboTimer--;
+                if (comboTimer <= 0) combo = 0;
+            }
+            if (energy < player.maxEnergy) energy += 0.2 * (1 + gameSettings.upgrades.energy * 0.3);
+            if (screenShake > 0) screenShake--;
+        }
+
+        function checkCollisions() {
+            // Player bullets hitting enemies
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                const bullet = bullets[i];
+                // Only process player bullets here
+                if (!bullet.enemy) {
+                    for (let j = enemies.length - 1; j >= 0; j--) {
+                        const enemy = enemies[j];
+
+                        // Check for collision between player bullet and enemy
+                        if (isColliding(bullet, enemy)) {
+                            console.log(`Collision detected: Bullet (type: ${bullet.type}) at (${bullet.x.toFixed(2)}, ${bullet.y.toFixed(2)}) with Enemy (type: ${enemy.type}, health: ${enemy.health}) at (${enemy.x.toFixed(2)}, ${enemy.y.toFixed(2)})`);
+
+                            const damageDealt = bullet.damage; // Calculate damage
+                            enemy.health -= damageDealt; // Reduce enemy health
+                            console.log(`Damage dealt: ${damageDealt}. Enemy health after hit: ${enemy.health}`);
+
+                            // Handle enemy death
+                            if (enemy.health <= 0) {
+                                console.log(`Enemy destroyed: ${enemy.type}`);
+                                let points;
+                                switch (enemy.type) {
+                                    case 'tank':
+                                        points = 50;
+                                        stats.tanksKilled++;
+                                        break;
+                                    case 'fast':
+                                        points = 20;
+                                        stats.fastEnemiesKilled++;
+                                        break;
+                                    case 'splitter':
+                                        points = 15;
+                                        // Note: splittersKilled is incremented when the original splitter is destroyed
+                                        // We'll handle spawning smaller ones below
+                                        break;
+                                    case 'boss':
+                                        points = 500;
+                                        stats.bossesKilled++;
+                                        // TODO: Add boss-specific death logic (phases, final explosion)
+                                        break;
+                                    default: // Normal enemies and smaller splitters
+                                        points = 10;
+                                }
+                                score += points * (combo > 1 ? combo : 1); // Update score with combo bonus
+                                combo++; // Increase combo
+                                comboTimer = 180; // Reset combo timer
+                                stats.enemiesKilled++; // Increment total enemies killed
+                                // Add energy and coins for killing enemy
+                                energy = Math.min(player.maxEnergy || 100, energy + 5); // Add 5 energy per kill
+                                gameSettings.coins += Math.floor(points / 2); // Add coins based on points (half of points value)
+                                createExplosion(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2, enemy.color, 15); // Create explosion effect
+                                spawnPowerUp(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2); // Spawn power-up
+                                spawnMemeText(enemy.x + enemy.width / 2, enemy.y, memeTexts.kill[Math.floor(Math.random() * memeTexts.kill.length)]); // Spawn meme text
+                                if (Math.random() < 0.1) spawnMemeText(enemy.x + enemy.width / 2, enemy.y, memeTexts.combo[Math.floor(Math.random() * memeTexts.combo.length)]); // Spawn combo meme text
+
+                                // If the killed enemy is a splitter, spawn smaller ones *before* removing the parent
+                                if (enemy.type === 'splitter') {
+                                    console.log("Splitter dying, spawning smaller ones");
+                                    const splitCount = enemy.width > 15 ? 2 : 0; // Determine how many to split into
+                                    for (let k = 0; k < splitCount; k++) {
+                                        enemies.push({ // Add new smaller splitters to the enemies array
+                                            x: enemy.x + (k - 0.5) * 10,
+                                            y: enemy.y,
+                                            width: enemy.width * 0.6,
+                                            height: enemy.height * 0.6,
+                                            speed: enemy.speed * 1.5,
+                                            color: '#88ff88',
+                                            health: 1,
+                                            type: 'split', // Mark as a smaller split piece
+                                            behavior: 'zigzag',
+                                            behaviorTimer: 0,
+                                            shootTimer: 0,
+                                            enemy: true // Mark as enemy
+                                        });
+                                    }
+                                }
+                                enemies.splice(j, 1); // Remove the current (hit) enemy
+                            } else if (enemy.type === 'boss') {
+                                // Add boss hit feedback if needed (e.g., screen shake)
+                                screenShake = 5; // Small shake on boss hit
+                            }
+
+                            // Remove the bullet after collision, unless it's a penetrating type
+                            if (bullet.type !== 'laser' && bullet.type !== 'nuke') {
+                                bullets.splice(i, 1); // Remove the current bullet
+                                break; // Exit the inner loop (checking enemies) since the bullet is gone
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Enemy bullets hitting player
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                const bullet = bullets[i];
+                // Only process enemy bullets here
+                if (bullet.enemy && isColliding(player, bullet) && player.shield <= 0) {
+                    console.log('Player hit by enemy bullet! Lives:', lives);
+                    lives--;
+                    stats.damageTakenThisLevel++;
+                    createExplosion(player.x + player.width / 2, player.y + player.height / 2, '#ff0000', 10);
+                    spawnMemeText(player.x + player.width / 2, player.y, memeTexts.death[Math.floor(Math.random() * memeTexts.death.length)]);
+                    bullets.splice(i, 1); // Remove the enemy bullet
+
+                    if (lives <= 0) {
+                        console.log('Game Over! Score:', score);
+                        gameState = 'gameover';
+                        document.getElementById('gameOver').style.display = 'block';
+                        gameSettings.highScore = Math.max(gameSettings.highScore, score);
+                        gameSettings.coins += Math.floor(score / 100);
+                        saveGame();
+                    } else {
+                        // Brief invincibility after being hit
+                        player.shield = 60; // 1 second of invincibility (assuming 60 frames per second)
+                        player.x = canvas.width / 2 - 20; // Reset player position
+                        player.y = canvas.height - 80;
+                    }
+                }
+            }
+
+            // Power-up collisions
+            for (let i = powerUps.length - 1; i >= 0; i--) {
+                if (isColliding(player, powerUps[i])) {
+                    const powerUp = powerUps[i];
+                    console.log(`Collected power-up: ${powerUp.type}`);
+                    switch (powerUp.type) {
+                        case 'weapon':
+                            const weaponTypes = ['spread', 'laser', 'quantum', 'rainbow'];
+                            const newWeapon = weaponTypes[Math.floor(Math.random() * weaponTypes.length)];
+                             console.log(`Changing weapon to: ${newWeapon}`);
+                            player.weaponType = newWeapon;
+                            player.weaponTimer = 600;
+                            break;
+                        case 'shield':
+                             console.log("Activating shield");
+                            player.shield = 300 * (1 + gameSettings.upgrades.shield * 0.25);
+                            break;
+                        case 'energy':
+                             console.log("Restoring energy");
+                            energy = Math.min(player.maxEnergy || 100, energy + 50);
+                            break;
+                        case 'life':
+                            console.log("Gaining a life");
+                            lives++;
+                            break;
+                        case 'speed':
+                            console.log("Activating speed boost");
+                            player.speedBoostTimer = 600;
+                            break;
+                        case 'combo':
+                             console.log("Boosting combo");
+                            combo += 5;
+                            comboTimer = 180;
+                            break;
+                        case 'magnet':
+                             console.log("Activating magnet");
+                            player.magnetTimer = 600;
+                            break;
+                    }
+                    stats.powerUpsCollected++;
+                    powerUps.splice(i, 1);
+                    createExplosion(powerUp.x + powerUp.width / 2, powerUp.y + powerUp.height / 2, powerUp.color, 10);
+                }
+            }
+
+            // Player-enemy collisions (direct collision damage)
+            for (let i = enemies.length - 1; i >= 0; i--) {
+                const enemy = enemies[i];
+                if (isColliding(player, enemy) && player.shield <= 0 && enemy.health > 0) {
+                    console.log('Player collided with enemy! Lives:', lives);
+                    lives--;
+                    stats.damageTakenThisLevel++;
+                    createExplosion(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2, '#ff0000', 15);
+                    spawnMemeText(player.x + player.width / 2, player.y, memeTexts.death[Math.floor(Math.random() * memeTexts.death.length)]);
+                    enemies.splice(i, 1);
+                    if (lives <= 0) {
+                        console.log('Game Over! Score:', score);
+                        gameState = 'gameover';
+                        document.getElementById('gameOver').style.display = 'block';
+                        gameSettings.highScore = Math.max(gameSettings.highScore, score);
+                        gameSettings.coins += Math.floor(score / 100);
+                        saveGame();
+                    } else {
+                        // Brief invincibility after collision
+                        player.shield = 60; // 1 second of invincibility
+                        player.x = canvas.width / 2 - 20; // Reset player position
+                        player.y = canvas.height - 80;
+                    }
+                }
+            }
+
+            // Level progression
+            if (score >= level * 300 && enemies.length === 0) { // Only level up when enemies are cleared
+                console.log(`Level up! Reached score ${score}, need ${level * 300}. Current level ${level}. Enemies left: ${enemies.length}`);
+                level++;
+                stats.levelStartTime = Date.now();
+                stats.damageTakenThisLevel = 0;
+                document.getElementById('levelUp').style.display = 'block';
+                setTimeout(() => document.getElementById('levelUp').style.display = 'none', 2000);
+                createExplosion(canvas.width / 2, canvas.height / 2, '#ffff00', 50);
+            }
+
+            checkAchievements();
+        }
+
+        function isColliding(obj1, obj2) {
+            // Add logging to see object details when called for player bullets
+            if (obj1.type !== undefined && !obj1.enemy) { // Check if obj1 is a player bullet
+                 console.log(`Checking collision between Bullet (type: ${obj1.type}, x: ${obj1.x.toFixed(2)}, y: ${obj1.y.toFixed(2)}, width: ${obj1.width}, height: ${obj1.height}) and Object (type: ${obj2.type}, x: ${obj2.x.toFixed(2)}, y: ${obj2.y.toFixed(2)}, width: ${obj2.width}, height: ${obj2.height})`);
+            }
+            
+            const collision = obj1.x < obj2.x + obj2.width &&
+                              obj1.x + obj1.width > obj2.x &&
+                              obj1.y < obj2.y + obj2.height &&
+                              obj1.y + obj1.height > obj2.y;
+            
+            if (obj1.type !== undefined && !obj1.enemy && collision) { // Log if collision is detected for a player bullet
+                 console.log("Collision detected by isColliding!");
+            }
+            
+            return collision;
+        }
+
+        function createExplosion(x, y, color, count) {
+            const particleLimits = {
+                low: 0.5,
+                medium: 0.75,
+                high: 1
+            };
+            const particleModifier = particleLimits[gameSettings.particleCount];
+            const adjustedCount = Math.floor(count * particleModifier);
+            for (let i = 0; i < adjustedCount; i++) {
+                particles.push({
+                    x: x, y: y,
+                    vx: (Math.random() - 0.5) * 10 * gameSpeedMultiplier,
+                    vy: (Math.random() - 0.5) * 10 * gameSpeedMultiplier,
+                    // Reduced particle life
+                    life: 20,
+                    maxLife: 20,
+                    color: color,
+                    // Reduced particle size
+                    size: Math.random() * 3 + 1
+                });
+            }
+        }
+
+        function draw() {
+            ctx.save();
+            if (screenShake > 0) {
+                const shakeX = (Math.random() - 0.5) * 5;
+                const shakeY = (Math.random() - 0.5) * 5;
+                ctx.translate(shakeX, shakeY);
+            }
+
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw stars
+            ctx.fillStyle = '#ffffff';
+            stars.forEach(star => {
+                const brightness = Math.sin(star.twinkle) * 0.5 + 0.5;
+                ctx.globalAlpha = brightness;
+                ctx.fillRect(star.x, star.y, star.size, star.size);
+            });
+            ctx.globalAlpha = 1;
+
+            // Draw trails
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            trails.forEach(trail => {
+                const alpha = trail.life / trail.maxLife;
+                ctx.globalAlpha = alpha;
+                ctx.fillRect(trail.x - 2, trail.y - 2, 4, 4);
+            });
+            ctx.globalAlpha = 1;
+
+            // Draw player
+            ctx.fillStyle = player.color;
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+
+            // Draw bullets
+            bullets.forEach(bullet => {
+                ctx.fillStyle = bullet.color;
+                if (bullet.rainbow) ctx.fillStyle = `hsl(${Date.now() % 360}, 100%, 50%)`;
+                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+            });
+
+            // Draw enemies with improved UI
+            enemies.forEach(enemy => {
+                // Draw enemy body
+                ctx.fillStyle = enemy.color;
+                ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+
+                // Draw health bar for all enemies
+                const maxHealth = enemy.type === 'boss' ? (50 + level * 10) :
+                                enemy.type === 'tank' ? (5 + Math.floor(level / 5)) :
+                                enemy.type === 'splitter' ? 2 : 1;
+                
+                const healthBarWidth = enemy.width;
+                const healthBarHeight = 4;
+                const healthPercentage = enemy.health / maxHealth;
+
+                // Health bar background
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                ctx.fillRect(enemy.x, enemy.y - 8, healthBarWidth, healthBarHeight);
+
+                // Health bar fill
+                ctx.fillStyle = healthPercentage > 0.5 ? '#00ff00' :
+                               healthPercentage > 0.25 ? '#ffff00' : '#ff0000';
+                ctx.fillRect(enemy.x, enemy.y - 8, healthBarWidth * healthPercentage, healthBarHeight);
+
+                // Draw enemy type indicator
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '10px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(enemy.type.toUpperCase(), enemy.x + enemy.width/2, enemy.y - 12);
+
+                // Draw special effects for different enemy types
+                if (enemy.type === 'boss') {
+                    // Boss aura
+                    ctx.strokeStyle = '#ff0000';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(enemy.x + enemy.width/2, enemy.y + enemy.height/2, 
+                           enemy.width * 0.8, 0, Math.PI * 2);
+                    ctx.stroke();
+                } else if (enemy.type === 'tank') {
+                    // Tank armor plates
+                    ctx.strokeStyle = '#666666';
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(enemy.x + 5, enemy.y + 5, enemy.width - 10, enemy.height - 10);
+                } else if (enemy.type === 'fast') {
+                    // Speed trails
+                    ctx.fillStyle = 'rgba(255, 68, 68, 0.3)';
+                    ctx.fillRect(enemy.x - 10, enemy.y + enemy.height/2 - 2, 10, 4);
+                } else if (enemy.type === 'splitter') {
+                    // Splitter glow
+                    ctx.fillStyle = 'rgba(68, 255, 68, 0.3)';
+                    ctx.beginPath();
+                    ctx.arc(enemy.x + enemy.width/2, enemy.y + enemy.height/2, 
+                           enemy.width * 0.8, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            });
+
+            // Draw power-ups
+            powerUps.forEach(powerUp => {
+                ctx.fillStyle = powerUp.color;
+                ctx.beginPath();
+                const bobY = Math.sin(powerUp.bobOffset) * 5;
+                ctx.arc(powerUp.x + powerUp.width / 2, powerUp.y + powerUp.height / 2 + bobY, powerUp.width / 2, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Draw power-up type indicator
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '10px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(powerUp.type.toUpperCase(), powerUp.x + powerUp.width/2, powerUp.y - 5);
+            });
+
+            // Draw particles
+            particles.forEach(particle => {
+                const alpha = particle.life / particle.maxLife;
+                ctx.globalAlpha = alpha;
+                ctx.fillStyle = particle.color;
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1;
+
+            ctx.restore();
+        }
+
+        function update() {
+            if (gameState === 'playing') {
+                handleInput();
+                spawnEnemy();
+                updateEnemies();
+                updateBullets();
+                updatePowerUps();
+                updateParticles();
+                updateTrails();
+                updateStars();
+                updateTimers();
+                checkCollisions();
+                checkAchievements();
+            } else if (gameState === 'start') {
+                if (keys[' '] || keys['Space']) {
+                    console.log('Starting game...');
+                    startGame();
+                }
+            } else if (gameState === 'gameover') {
+                if (keys['KeyR'] || keys['r']) {
+                    console.log('R key pressed, resetting game...');
+                    resetGame();
+                }
+            }
+            draw();
+            updateUI();
+            requestAnimationFrame(update);
+        }
+
+        const gameCanvas = document.getElementById('gameCanvas');
+        gameCanvas.setAttribute('tabindex', '0');
+
+        // Add focus management
+        gameCanvas.addEventListener('click', function() {
+            console.log('Canvas clicked, focusing...');
+            gameCanvas.focus();
+        });
+
+        gameCanvas.addEventListener('focus', function() {
+            console.log('Canvas gained focus');
+            gameCanvas.style.border = '2px solid #00ffcc';
+        });
+
+        gameCanvas.addEventListener('blur', function() {
+            console.log('Canvas lost focus');
+            gameCanvas.style.border = 'none';
+        });
+
+        // Set up all event listeners
+        gameCanvas.addEventListener('keydown', function(e) {
+            console.log('Canvas Key Pressed:', e.key, 'Code:', e.code, 'GameState:', gameState);
+
+            // Prevent default behavior for game controls
+            if ([' ', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyQ', 'KeyE', 'KeyR', 'KeyC', 'Enter'].includes(e.code)) {
+                e.preventDefault();
+            }
+
+            // Handle both key and code for better compatibility
+            keys[e.key] = true;
+            keys[e.code] = true;
+
+            // Konami Code Detection
+            handleKonamiCode(e.code);
+
+            // Special handling for Space key
+            if (e.code === 'Space' || e.key === ' ') {
+                keys[' '] = true;
+                keys['Space'] = true;
+                if (gameState === 'start') {
+                    console.log('Space key pressed in start state - attempting to start game');
+                    console.log('Space pressed in start state, starting game');
+                    startGame();
+                }
+            }
+
+            // Handle R key for reset
+            if (e.code === 'KeyR' || e.key === 'r') {
+                console.log('R key detected in state:', gameState);
+                if (gameState === 'gameover') {
+                    console.log('Resetting game from gameover state...');
+                    resetGame();
+                }
+            }
+        });
+
+        gameCanvas.addEventListener('keyup', function(e) {
+            console.log('Key released:', e.key, 'Code:', e.code);
+
+            // Clear both key and code
+            keys[e.key] = false;
+            keys[e.code] = false;
+
+            // Special handling for Space key
+            if (e.code === 'Space' || e.key === ' ') {
+                keys[' '] = false;
+                keys['Space'] = false;
+            }
+        });
+
+        // Add blur event listener to clear keys when window loses focus
+        window.addEventListener('blur', () => {
+            console.log('Window lost focus, clearing keys. Canvas focused:', document.activeElement === gameCanvas);
+            keys = {};
+        });
+
+        loadGame();
+        updateShop();
+        update();
+
+        document.getElementById('showTutorialBtn').addEventListener('click', () => {
+            document.getElementById('tutorialOverlay').classList.add('show');
+        });
+        document.getElementById('closeTutorialBtn').addEventListener('click', () => {
+            document.getElementById('tutorialOverlay').classList.remove('show');
+        });
+
+        document.getElementById('showShopBtn').addEventListener('click', () => {
+            checkDailyReward();
+            document.getElementById('shopOverlay').classList.add('show');
+        });
+        document.getElementById('closeShopBtn').addEventListener('click', () => {
+            document.getElementById('shopOverlay').classList.remove('show');
+        });
+        document.getElementById('claimReward').addEventListener('click', claimDailyReward);
+
+        document.getElementById('showSettingsBtn').addEventListener('click', () => {
+            initializeSettingsUI(); // Initialize UI before showing
+            document.getElementById('settingsOverlay').classList.add('show');
+        });
+        document.getElementById('closeSettingsBtn').addEventListener('click', () => {
+            document.getElementById('settingsOverlay').classList.remove('show');
+        });
+
+        // Shop tab switching
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                document.querySelectorAll('.shop-section').forEach(section => section.classList.remove('active'));
+                document.getElementById(btn.dataset.tab + 'Section').classList.add('active');
+            });
+        });
+
+        // Add event listeners for settings changes
+        document.getElementById('difficultySelect').addEventListener('change', (e) => {
+            gameSettings.difficulty = e.target.value;
+            saveGame();
+        });
+
+        document.getElementById('particleSelect').addEventListener('change', (e) => {
+            gameSettings.particleCount = e.target.value;
+            saveGame();
+        });
+
+        // Event listener for speed slider
+        const speedSlider = document.getElementById('speedSlider');
+        const speedValueSpan = document.getElementById('speedValue');
+
+        speedSlider.addEventListener('input', (e) => {
+            gameSettings.gameSpeed = parseFloat(e.target.value);
+            speedValueSpan.textContent = gameSettings.gameSpeed.toFixed(2);
+            applySettings(); // Apply the new speed immediately
+            saveGame(); // Save the setting
+        });
+
+        // Function to initialize settings UI when opened
+        function initializeSettingsUI() {
+            document.getElementById('difficultySelect').value = gameSettings.difficulty;
+            document.getElementById('particleSelect').value = gameSettings.particleCount;
+            speedSlider.value = gameSettings.gameSpeed;
+            speedValueSpan.textContent = gameSettings.gameSpeed.toFixed(2);
+        }
+
+        // Konami Code Logic
+        const konamiCode = [
+            'ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown',
+            'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight',
+            'KeyB', 'KeyA'
+        ];
+        let konamiCodePosition = 0;
+        
+        function handleKonamiCode(keyCode) {
+            console.log('Konami Code - Received keyCode:', keyCode, 'Expected:', konamiCode[konamiCodePosition]);
+            
+            // If we're waiting for Enter after the sequence is complete
+            if (konamiCodePosition === konamiCode.length && keyCode === 'Enter') {
+                console.log('Konami code sequence completed with Enter!');
+                applyKonamiEffect();
+                konamiCodePosition = 0;
+                return;
+            }
+            
+            // Check if the current key matches the next key in the sequence
+            if (keyCode === konamiCode[konamiCodePosition]) {
+                konamiCodePosition++;
+                console.log('Konami code progress:', konamiCodePosition, 'of', konamiCode.length);
+                
+                // If the entire sequence is matched, wait for Enter
+                if (konamiCodePosition === konamiCode.length) {
+                    console.log('Konami code sequence matched, waiting for Enter...');
+                }
+            } else {
+                // If the key doesn't match the current expected key, reset the sequence
+                konamiCodePosition = 0;
+                // Check if the pressed key is the first key of the sequence to start over
+                if (keyCode === konamiCode[0]) {
+                    konamiCodePosition = 1;
+                    console.log('Konami code sequence restarted');
+                }
+            }
+        }
+
+        function applyKonamiEffect() {
+            console.log('Cheat activated! Applying effect.');
+            lives += 2; // Grant 2 extra lives
+            energy = player.maxEnergy || 100; // Replenish energy
+            gameSettings.coins += 500; // Grant 500 coins
+            
+            if (gameState === 'start') {
+                console.log('Cheat activated on start screen.');
+                // Show notification on the start screen (assuming you want it on the main game container)
+                const startScreenNotification = document.createElement('div');
+                startScreenNotification.className = 'chat-notification'; // Reuse existing notification style
+                startScreenNotification.textContent = "CHEAT ACTIVATED!";
+                // Position it centered on the screen - might need specific CSS for this if 'chat-notification' is fixed to corner
+                startScreenNotification.style.position = 'absolute';
+                startScreenNotification.style.top = '50%';
+                startScreenNotification.style.left = '50%';
+                startScreenNotification.style.transform = 'translate(-50%, -50%)';
+                document.getElementById('gameContainer').appendChild(startScreenNotification);
+                setTimeout(() => startScreenNotification.remove(), 3000);
+
+            } else { // In-game notification
+                showNotification("CHEAT ACTIVATED!");
+                screenShake = 30; // Add a screen shake effect only in-game
+                createExplosion(canvas.width/2, canvas.height/2, '#ffff00', 50); // Add a visual effect only in-game
+                spawnMemeText(canvas.width/2, canvas.height/2, "IT'S DANGEROUS TO GO ALONE!"); // Add meme text only in-game
+            }
+            
+            updateUI();
+            updateShop(); // Update shop UI to show new coin balance
+        }
+
+        // Update canvas element to be focusable and focus on load
+        gameCanvas.setAttribute('tabindex', '0');
+
+        // Attempt to focus canvas immediately on load
+        gameCanvas.focus();
+    </script>
+</body>
+</html>
